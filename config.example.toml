@@ -1,0 +1,28 @@
+# Copy to config.toml and run with:  python -m mlarchive --config config.toml run
+# Every key can also be set as an env var: MLA_<KEY_IN_UPPERCASE>.
+# Anything omitted uses the default shown here.
+
+data_dir = "data"              # audio, transcripts, state.db, logs. Keep it off synced folders.
+
+poll_interval_s = 900          # check both portals every 15 minutes
+senate_full_sync_s = 86400     # re-walk the entire Senate catalogue once a day
+sources = ["house", "senate"]
+process_since = "2026-01-01"   # backlog window; older recordings are tracked but not processed
+
+fetch_workers = 2
+transcribe_workers = 1         # one GPU -> one model
+download_connections = 4
+lease_s = 120
+max_attempts = 8
+backoff_base_s = 30
+backoff_cap_s = 21600
+park_s = 86400
+
+whisper_model = "auto"         # auto = large-v3-turbo on GPU, small on CPU
+whisper_device = "auto"        # auto | cuda | cpu
+whisper_compute_type = "auto"
+language = "en"
+window_s = 1800
+
+keep_audio = true
+min_free_gb = 5.0

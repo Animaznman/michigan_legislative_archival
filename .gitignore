@@ -218,3 +218,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# mlarchive runtime data (audio, transcripts, state db, logs)
+/data/

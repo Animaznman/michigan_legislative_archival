@@ -1,0 +1,12 @@
+# Runtime
+httpx==0.28.1            # HTTP client (connection pooling, timeouts, streaming)
+truststore==0.10.5       # verify TLS with the OS trust store (house.mi.gov sends an incomplete chain)
+beautifulsoup4==4.15.0   # parse the House archive page
+av==19.0.2               # FFmpeg bindings: demux/remux audio, decode to PCM (no ffmpeg install needed)
+faster-whisper==1.2.1    # local Whisper (CTranslate2); pulls in ctranslate2, numpy, tokenizers
+numpy==2.5.4
+
+# GPU (optional). CTranslate2 on Windows/Linux needs these CUDA 12 libraries.
+# Without a GPU (or without these) transcription falls back to CPU automatically.
+nvidia-cublas-cu12==12.9.2.10 ; platform_system != "Darwin"
+nvidia-cudnn-cu12==9.27.0.42 ; platform_system != "Darwin"
