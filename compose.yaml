@@ -1,0 +1,37 @@
+# Start:   docker compose up -d --build
+# Status:  docker compose exec mlarchive python -m mlarchive status
+# Logs:    docker compose logs -f mlarchive
+# Tests:   docker compose --profile test run --rm test
+services:
+  mlarchive:
+    build:
+      context: .
+      target: runtime
+    image: mlarchive:latest
+    restart: unless-stopped
+    # Gives in-flight work time to release its lease and checkpoint on stop.
+    stop_grace_period: 90s
+    gpus: all
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      MLA_DATA_DIR: /data
+    volumes:
+      # Audio, transcripts, logs and (by default) state.db, in a host folder.
+      - ${MLA_HOST_DATA_DIR:?set MLA_HOST_DATA_DIR in .env (see .env.example)}:/data
+      # Whisper weights, downloaded once.
+      - mla-models:/models
+      # Used only if MLA_STATE_DB=/state/state.db (see .env.example).
+      - mla-state:/state
+
+  test:
+    profiles: ["test"]
+    build:
+      context: .
+      target: test
+    image: mlarchive:test
+
+volumes:
+  mla-models:
+  mla-state:

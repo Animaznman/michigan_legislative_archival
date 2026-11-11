@@ -191,7 +191,7 @@ class Database:
                          WHERE stage=? AND next_attempt_at<=? AND recorded_on>=?
                            AND (lease_expires_at IS NULL OR lease_expires_at<?) {src_sql}
                          ORDER BY recorded_on DESC, id DESC LIMIT 1)
-                RETURNING *""",
+                RETURNING *""", # Means that the newest is first and jumps to the top of the backlog
                 (owner, now + lease_s, now, stage, gate, since, now, *srcs)).fetchone()
             if row:
                 self._event(c, row["id"], "claimed", f"{stage} by {owner}")

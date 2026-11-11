@@ -1,0 +1,9 @@
+.git
+.venv
+.vscode
+.pytest_cache
+**/__pycache__
+data
+*.part
+config.toml
+.env

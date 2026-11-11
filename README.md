@@ -220,6 +220,59 @@ The process is meant to run forever and be restarted by the OS if it ever exits.
   start in the repo folder, "If the task fails, restart every 1 minute".
 * **Linux:** a systemd unit with `Restart=always`; `systemctl stop` sends SIGTERM, which shuts down gracefully.
 * **Cron style:** `run --once` every 15 minutes is also safe, because leases prevent overlapping runs from colliding.
+* **Docker:** see below. `restart: unless-stopped` takes the place of Task Scheduler or systemd.
+
+## Running with Docker
+
+The image runs the same `python -m mlarchive` entry point, and transcription still uses your
+local NVIDIA GPU. The CUDA libraries come from the `nvidia-*` pip wheels inside the image; the
+driver comes from the host.
+
+* **Windows:** Docker Desktop with the WSL2 backend passes the GPU through. Nothing else to install.
+* **Linux:** install the NVIDIA Container Toolkit.
+* **No GPU:** the container falls back to `small` on the CPU automatically.
+
+```bash
+cp .env.example .env                  # then set MLA_HOST_DATA_DIR to a local folder (not OneDrive)
+docker compose up -d --build          # build and start the service
+docker compose logs -f mlarchive      # follow the log
+docker compose exec mlarchive python -m mlarchive status
+docker compose exec mlarchive python -m mlarchive retry 412
+docker compose stop                   # SIGTERM: workers release leases, then exit
+docker compose --profile test run --rm test   # run the test suite inside the image
+```
+
+Storage:
+
+| In the container | Where it lives | What |
+|---|---|---|
+| `/data` | `MLA_HOST_DATA_DIR` on the host | audio, transcripts, work, logs, `state.db` |
+| `/models` | volume `mla-models` | Whisper weights (~1.6 GB, downloaded once) |
+| `/state` | volume `mla-state` | only if `MLA_STATE_DB=/state/state.db` |
+
+**TLS:** house.mi.gov doesn't send its intermediate certificate. Windows fetches it
+automatically and Linux doesn't, so the image adds DigiCert's intermediate
+(`docker/certs/`, valid to 2031) to the system trust store. Verification stays fully on.
+If the House switches to a different certificate authority and discovery starts failing with
+`CERTIFICATE_VERIFY_FAILED`, download the new intermediate from the leaf certificate's
+"CA Issuers" URL into `docker/certs/` and rebuild.
+
+**Performance:** on an RTX 5070 Ti, transcription in the container runs within about 15% of
+native Windows. The first window after each start includes a few seconds of CUDA warm-up.
+
+To move an existing local install into Docker, copy your `data/` folder's contents into
+`MLA_HOST_DATA_DIR` before the first start. The database and partial downloads carry over.
+
+SQLite in WAL mode needs reliable file locking, and Docker Desktop's sharing of Windows folders
+doesn't always provide it. If you see `database is locked` or `disk I/O error`, put just the
+database on a Docker volume. Audio and transcripts stay in your folder.
+
+1. Set `MLA_STATE_DB=/state/state.db` in `.env`.
+2. Copy the existing database in:
+
+   ```bash
+   docker compose run --rm --entrypoint sh mlarchive -c 'cp /data/state.db* /state/'
+   ```
 
 ## Tests
 

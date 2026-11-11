@@ -79,7 +79,7 @@ def request(client: httpx.Client, method: str, url: str, *, tries: int = 6,
         log.warning("retry %d/%d in %.1fs: %s %s: %s", attempt, tries - 1, delay,
                     method, url, last)
         if stop is not None:
-            if stop.wait(delay):
+            if stop.wait(delay): # like sleep, but returns True if shutdown is requested
                 raise InterruptedError("shutdown requested")
         else:
             time.sleep(delay)

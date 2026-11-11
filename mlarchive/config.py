@@ -44,9 +44,13 @@ class Settings:
 
     user_agent: str = "mlarchive/1.0 (Michigan Legislature public-record archiver)"
 
+    # Optional: keep state.db somewhere other than data_dir (e.g. a Docker
+    # volume, when data_dir is a Windows bind mount with unreliable locking).
+    state_db: str = ""
+
     @property
     def db_path(self) -> Path:
-        return self.data_dir / "state.db"
+        return Path(self.state_db) if self.state_db else self.data_dir / "state.db"
 
     @property
     def audio_dir(self) -> Path:
@@ -65,7 +69,7 @@ class Settings:
         return self.data_dir / "logs"
 
 # Check to make sure values are what they 'seem' to be
-def _coerce(value, typ, current):
+def _coerce(value, current):
     if isinstance(current, bool):
         return value if isinstance(value, bool) else str(value).lower() in ("1", "true", "yes")
     if isinstance(current, int):
@@ -93,5 +97,5 @@ def load_settings(path: str | os.PathLike | None = None) -> Settings:
     for k, v in overrides.items():
         if not hasattr(s, k):
             raise ValueError(f"unknown setting: {k}")
-        setattr(s, k, _coerce(v, None, getattr(s, k)))
+        setattr(s, k, _coerce(v, getattr(s, k)))
     return s

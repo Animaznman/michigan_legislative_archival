@@ -3,6 +3,7 @@
 # Anything omitted uses the default shown here.
 
 data_dir = "data"              # audio, transcripts, state.db, logs. Keep it off synced folders.
+# state_db = ""                # optional: put state.db elsewhere (default: <data_dir>/state.db)
 
 poll_interval_s = 900          # check both portals every 15 minutes
 senate_full_sync_s = 86400     # re-walk the entire Senate catalogue once a day
